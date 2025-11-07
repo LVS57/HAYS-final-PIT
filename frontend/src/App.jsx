@@ -3,6 +3,115 @@ import './App.css'
 import './index.css'
 import RFIDStatusTable from './components/RFIDStatusTable'
 
+function RFIDLogs({ logs, rfids = [], showFilter }) {
+  const [filter, setFilter] = React.useState('all')
+
+  const formatDate = (ts) => {
+    if (!ts) return ''
+    const d = new Date(ts)
+    if (Number.isNaN(d.getTime())) return String(ts)
+    return d.toLocaleString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+  }
+
+  const filteredLogs = logs.filter((l) => {
+    if (filter === 'all') return true
+    const found = rfids.find((r) => r.rfid_tag === l.rfid_tag)
+    const statusValue = found ? found.status : l.status
+    if (filter === '1') return Number(statusValue) === 1
+    if (filter === '0') return Number(statusValue) === 0
+    if (filter === 'unknown') return !found
+    return true
+  })
+
+  return (
+    <div className="card responsive">
+      <div className="flex-between">
+        <h2>Recent RFID Logs</h2>
+        {showFilter && (
+          <div className="filter-group">
+            {['all', '1', '0', 'unknown'].map((type) => (
+              <button
+                key={type}
+                className={`filter-btn ${filter === type ? 'active' : ''}`}
+                onClick={() => setFilter(type)}
+              >
+                {type === 'all'
+                  ? 'All'
+                  : type === '1'
+                  ? '1'
+                  : type === '0'
+                  ? '0'
+                  : 'Unknown'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div
+        className="table centered"
+        style={{
+          maxHeight: '400px',
+          overflowY: 'auto',
+          scrollbarWidth: 'thin',
+        }}
+      >
+        <div
+          className="table-row table-header"
+          style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}
+        >
+          <div>RFID</div>
+          <div>Status</div>
+          <div>Stamp</div>
+        </div>
+        {filteredLogs.length ? (
+          filteredLogs.map((l) => {
+            const found = rfids.find((r) => r.rfid_tag === l.rfid_tag)
+            const statusValue = found ? found.status : l.status
+            const isKnown = !!found
+            const isOn = Number(statusValue) === 1
+            return (
+              <div
+                className="table-row"
+                key={l.id || `${l.rfid_tag}-${l.timestamp}`}
+                style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}
+              >
+                <div className="mono">{l.rfid_tag}</div>
+                <div>
+                  {isKnown &&
+                  (statusValue === 0 ||
+                    statusValue === 1 ||
+                    statusValue === '0' ||
+                    statusValue === '1') ? (
+                    <span
+                      className={`badge ${isOn ? 'badge-on' : 'badge-off'}`}
+                    >
+                      {isOn ? '1' : '0'}
+                    </span>
+                  ) : (
+                    <span className="state notfound">RFID NOT FOUND</span>
+                  )}
+                </div>
+                <div className="time">{formatDate(l.timestamp)}</div>
+              </div>
+            )
+          })
+        ) : (
+          <div className="table-row" style={{ gridTemplateColumns: '1fr' }}>
+            <div className="muted">No logs yet</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function App() {
   const [rfids, setRfids] = useState([])
