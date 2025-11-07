@@ -42,6 +42,8 @@ function App() {
       setLoading(false)
     }
   }, [REG_URL, LOGS_URL])
+
+  
 }
 
 export default App
