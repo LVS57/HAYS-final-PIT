@@ -42,8 +42,65 @@ function App() {
       setLoading(false)
     }
   }, [REG_URL, LOGS_URL])
+  const updateStatus = useCallback(async (rfid_tag) => {
+    try {
+      const res = await fetch(INSERT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rfid_data: rfid_tag }),
+      })
+      if (!res.ok) throw new Error(`Insert failed (${res.status})`)
+      await safeJson(res)
+      fetchData()
+    } catch (e) {
+      console.error(e)
+      setError(String(e.message || e))
+    }
+  }, [INSERT_URL, fetchData])
 
-  
+  const routes = useMemo(() => [
+    { path: '#/status', label: 'Status' },
+    { path: '#/logs', label: 'Logs' },
+  ], [])
+
+  const [hash, setHash] = useState(window.location.hash || '#/status')
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash || '#/status')
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  return (
+    <div>
+      <nav className="navbar">
+        <div className="navbar-inner container">
+          <div className="brand">IT414 Final PIT</div>
+          <div className="nav">
+            {routes.map((r) => (
+              <a key={r.path} href={r.path} className={hash === r.path ? 'active' : ''}>{r.label}</a>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      <main className="container" style={{ paddingTop: 16 }}>
+        {error && <div className="card" style={{ color: '#ef4444' }}>Error: {error}</div>}
+        {loading && <div className="card muted">Loading...</div>}
+        {hash === '#/status' && (
+          <div className="grid two-col">
+            <RFIDStatusTable items={rfids} />
+            <RFIDLogs logs={logs} rfids={rfids} showFilter={false} />
+          </div>
+        )}
+
+        {hash === '#/logs' && (
+          <div className="grid">
+            <RFIDLogs logs={logs} rfids={rfids} showFilter={true} />
+          </div>
+        )}
+      </main>
+    </div>
+  )
 }
 
 export default App
