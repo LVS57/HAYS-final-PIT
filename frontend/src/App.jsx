@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import './App.css'
+import './index.css'
+import RFIDStatusTable from './components/RFIDStatusTable'
+
 
 function App() {
-    const [rfids, setRfids] = useState([])
+  const [rfids, setRfids] = useState([])
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -42,6 +43,14 @@ function App() {
       setLoading(false)
     }
   }, [REG_URL, LOGS_URL])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    const id = setInterval(() => { fetchData() }, 5000)
+    return () => clearInterval(id)
+  }, [fetchData])
+
   const updateStatus = useCallback(async (rfid_tag) => {
     try {
       const res = await fetch(INSERT_URL, {
