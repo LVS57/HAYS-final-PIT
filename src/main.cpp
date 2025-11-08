@@ -23,7 +23,7 @@ void connectToWiFi();
 
 String lastTag = "";
 unsigned long lastReadTime = 0;
-const unsigned long readInterval = 3000;
+const unsigned long readInterval = 5000;
 bool wifiConnected = false;
 
 void setup() {

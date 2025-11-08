@@ -3,7 +3,7 @@ import './App.css'
 import './index.css'
 import RFIDStatusTable from './components/RFIDStatusTable'
 import RFIDLogs from './components/RFIDLogs'
-
+import TestPanel from './components/TestPanel'
 
 function App() {
   const [rfids, setRfids] = useState([])
@@ -68,6 +68,34 @@ function App() {
     }
   }, [INSERT_URL, fetchData])
 
+  const postTag = useCallback(async (rfid_tag) => {
+    if (!rfid_tag) return
+    const res = await fetch(INSERT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rfid_data: rfid_tag }),
+    })
+    if (!res.ok) throw new Error(`Insert failed (${res.status})`)
+    await safeJson(res)
+    fetchData()
+  }, [INSERT_URL, fetchData])
+
+  const registerTag = useCallback(async (rfid_tag) => {
+    if (!rfid_tag) return
+    const res = await fetch(`/api/insert.php?action=register&tag=${encodeURIComponent(rfid_tag)}`, { cache: 'no-store' })
+    if (!res.ok) throw new Error(`Register failed (${res.status})`)
+    await safeJson(res)
+    fetchData()
+  }, [fetchData])
+
+  const unregisterTag = useCallback(async (rfid_tag) => {
+    if (!rfid_tag) return
+    const res = await fetch(`/api/insert.php?action=unregister&tag=${encodeURIComponent(rfid_tag)}`, { cache: 'no-store' })
+    if (!res.ok) throw new Error(`Unregister failed (${res.status})`)
+    await safeJson(res)
+    fetchData()
+  }, [fetchData])
+
   const routes = useMemo(() => [
     { path: '#/status', label: 'Status' },
     { path: '#/logs', label: 'Logs' },
@@ -98,7 +126,16 @@ function App() {
         {loading && <div className="card muted">Loading...</div>}
         {hash === '#/status' && (
           <div className="grid two-col">
-            <RFIDStatusTable items={rfids} />
+            <div>
+              <TestPanel
+                rfids={rfids}
+                onPost={postTag}
+                onRegister={registerTag}
+                onUnregister={unregisterTag}
+                onToggle={updateStatus}
+              />
+              <RFIDStatusTable items={rfids} onToggle={updateStatus} />
+            </div>
             <RFIDLogs logs={logs} rfids={rfids} showFilter={false} />
           </div>
         )}
