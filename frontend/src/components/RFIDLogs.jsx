@@ -82,9 +82,10 @@ export default function RFIDLogs({ logs, rfids = [], showFilter = false }) {
         {filteredLogs?.length ? (
           filteredLogs.map((l) => {
             const found = rfids.find((r) => r.rfid_tag === l.rfid_tag)
-            const statusValue = found ? found.status : l.status
+            const statusValue =
+              l.status !== null && l.status !== undefined ? l.status : found?.status
             const isKnown = !!found
-            const isOn = Number(statusValue) === 1
+            const isOn = Number(statusValue) === 1  
             return (
               <div
                 className="table-row"
