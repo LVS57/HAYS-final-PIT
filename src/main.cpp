@@ -127,7 +127,11 @@ void sendRFIDData(String rfidData) {
   WiFiClient client;
   HTTPClient http;
 
-  if (!http.begin(client, serverScan)) return;
+  Serial.print("POST "); Serial.println(serverScan);
+  if (!http.begin(client, serverScan)) {
+    Serial.println("HTTP begin failed");
+    return;
+  }
 
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(10000);
