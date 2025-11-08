@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react'
 
-export default function RFIDLogs({ logs, rfids = [], showFilter = false }) {
+export default function RFIDLogs({ logs = [], rfids = [], showFilter = false }) {
   const [filter, setFilter] = useState('all')
 
   const formatDate = (ts) => {
@@ -13,29 +13,17 @@ export default function RFIDLogs({ logs, rfids = [], showFilter = false }) {
     })
   }
 
+  // Filter strictly by the historical log status
   const filteredLogs = useMemo(() => {
     if (filter === 'all') return logs
     return logs.filter((l) => {
-      const found = rfids.find((r) => r.rfid_tag === l.rfid_tag)
-      const isKnown = !!found
-      const statusValue = found
-        ? Number(found.status)
-        : l.status === null
-        ? null
-        : Number(l.status)
-
-      switch (filter) {
-        case '1':
-          return isKnown && statusValue === 1
-        case '0':
-          return isKnown && statusValue === 0
-        case 'unknown':
-          return !isKnown
-        default:
-          return true
-      }
+      const s = l.status === null ? null : Number(l.status)
+      if (filter === '1') return s === 1
+      if (filter === '0') return s === 0
+      if (filter === 'unknown') return s === null
+      return true
     })
-  }, [logs, rfids, filter])
+  }, [logs, filter])
 
   return (
     <div className="card responsive">
@@ -44,30 +32,10 @@ export default function RFIDLogs({ logs, rfids = [], showFilter = false }) {
 
         {showFilter && (
           <div className="filter-group">
-            <button
-              className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              All
-            </button>
-            <button
-              className={`filter-btn ${filter === '1' ? 'active' : ''}`}
-              onClick={() => setFilter('1')}
-            >
-              1
-            </button>
-            <button
-              className={`filter-btn ${filter === '0' ? 'active' : ''}`}
-              onClick={() => setFilter('0')}
-            >
-              0
-            </button>
-            <button
-              className={`filter-btn ${filter === 'unknown' ? 'active' : ''}`}
-              onClick={() => setFilter('unknown')}
-            >
-              Unknown
-            </button>
+            <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
+            <button className={`filter-btn ${filter === '1' ? 'active' : ''}`} onClick={() => setFilter('1')}>1</button>
+            <button className={`filter-btn ${filter === '0' ? 'active' : ''}`} onClick={() => setFilter('0')}>0</button>
+            <button className={`filter-btn ${filter === 'unknown' ? 'active' : ''}`} onClick={() => setFilter('unknown')}>Unknown</button>
           </div>
         )}
       </div>
@@ -81,22 +49,22 @@ export default function RFIDLogs({ logs, rfids = [], showFilter = false }) {
 
         {filteredLogs?.length ? (
           filteredLogs.map((l) => {
-            const found = rfids.find((r) => r.rfid_tag === l.rfid_tag)
-            const statusValue = found ? found.status : l.status
-            const isKnown = !!found
-            const isOn = Number(statusValue) === 1
+            const s = l.status === null ? null : Number(l.status)
+            const isUnknown = s === null
+            const isOn = s === 1
+            const isOff = s === 0
             return (
               <div
                 className="table-row"
-                key={l.id || `${l.rfid_tag}-${l.timestamp}`}
+                key={l.id ?? `${l.rfid_tag}-${l.timestamp}`}
                 style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}
               >
                 <div className="mono">{l.rfid_tag}</div>
                 <div>
-                  {isKnown && (statusValue === 0 || statusValue === 1 || statusValue === '0' || statusValue === '1') ? (
-                    <span className={`badge ${isOn ? 'badge-on' : 'badge-off'}`}>{isOn ? '1' : '0'}</span>
-                  ) : (
+                  {isUnknown ? (
                     <span className="state notfound">RFID NOT FOUND</span>
+                  ) : (
+                    <span className={`badge ${isOn ? 'badge-on' : 'badge-off'}`}>{isOn ? '1' : isOff ? '0' : ''}</span>
                   )}
                 </div>
                 <div className="time">{formatDate(l.timestamp)}</div>
