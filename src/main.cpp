@@ -13,7 +13,7 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 WiFiMulti wifiMulti;
 
 
-const char* serverName = "http://10.10.10.33/esp32/insert.php";
+const char* serverScan = "http://10.10.10.33/insert.php";
 
 
 void readRFID();
@@ -23,7 +23,7 @@ void connectToWiFi();
 
 String rfidData = "";
 unsigned long lastReadTime = 0;
-const unsigned long readInterval = 2000;
+const unsigned long readInterval = 1500;
 bool wifiConnected = false;
 
 void setup() {
@@ -37,8 +37,7 @@ void setup() {
 
   // Set WiFi mode and add networks
   WiFi.mode(WIFI_STA);
-  wifiMulti.addAP("Cloud Control Network", "ccv7network");
-  wifiMulti.addAP("Cloud Control Network", "ccv7network");
+  wifiMulti.addAP("Cloud Control Network", "ccv7network"); 
   
   connectToWiFi();
   
@@ -48,7 +47,7 @@ void setup() {
 
 void connectToWiFi() {
   int attempts = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempts < 15) {
+  while (wifiMulti.run() != WL_CONNECTED && attempts < 30) {
     Serial.print(".");
     delay(500);
     attempts++;
@@ -124,7 +123,7 @@ void sendRFIDData(String rfidData) {
   WiFiClient client;
   HTTPClient http;
 
-  if (!http.begin(client, serverName)) return;
+  if (!http.begin(client, serverScan)) return;
 
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(10000);
