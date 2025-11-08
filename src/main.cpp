@@ -17,11 +17,11 @@ const char* serverScan = "http://10.10.10.33/insert.php";
 
 
 void readRFID();
-void sendRFIDData(String rfidData);
+void sendScan(const String& rfidTag);
 void connectToWiFi();
 
 
-String rfidData = "";
+String lastTag = "";
 unsigned long lastReadTime = 0;
 const unsigned long readInterval = 1500;
 bool wifiConnected = false;
@@ -55,9 +55,9 @@ void connectToWiFi() {
   
   if (wifiMulti.run() == WL_CONNECTED) {
     wifiConnected = true;
-    Serial.println("\nWiFi connected successfully!");
-    Serial.print("SSID: ");
-    Serial.println(WiFi.SSID());
+    Serial.println("\nWiFi connected");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
     Serial.println();
@@ -68,26 +68,25 @@ void connectToWiFi() {
 }
 
 void loop() {
-  if (wifiMulti.run() == WL_CONNECTED) {
-    if (!wifiConnected) {
-      wifiConnected = true;
-      Serial.println("WiFi reconnected!");
-    }
-    
-    if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-      readRFID();
-    }
-  } else {
+  if (wifiMulti.run() != WL_CONNECTED) {
     if (wifiConnected) {
       wifiConnected = false;
-      Serial.println("WiFi disconnected!");
+      Serial.println("WiFi disconnected");
     }
     delay(2000);
     connectToWiFi();
+    return;
+  } else if (!wifiConnected) {
+    wifiConnected = true;
+    Serial.println("WiFi reconnected");
   }
-  
-  delay(50);
+
+  if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
+    readRFID();
+  }
+  delay(30);
 }
+
 
 void readRFID() {
   if (millis() - lastReadTime < readInterval) {
@@ -96,22 +95,27 @@ void readRFID() {
     return;
   }
   
-  rfidData = "";
+  String tag = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
-    rfidData.concat(String(rfid.uid.uidByte[i] < 0x10 ? "0" : ""));
-    rfidData.concat(String(rfid.uid.uidByte[i], HEX));
+    tag += String(rfid.uid.uidByte[i] < 0x10 ? "0" : "");
+    tag += String(rfid.uid.uidByte[i], HEX);
   }
-  rfidData.toUpperCase();
-  
-  Serial.println();
+  tag.toUpperCase();
+  lastReadTime = millis();
+  if (tag == lastTag) {
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+    return;
+  }
+   lastTag = tag;
+
   Serial.print("RFID Detected: ");
-  Serial.println(rfidData);
-  
-  sendRFIDData(rfidData);
-  
+  Serial.println(tag);
+
+  sendScan(tag);
+
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
-  lastReadTime = millis();
 }
 
 void sendRFIDData(String rfidData) {
