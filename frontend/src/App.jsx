@@ -96,6 +96,13 @@ function App() {
     fetchData()
   }, [fetchData])
 
+  const clearLogs = useCallback(async () => {
+    const res = await fetch('/api/insert.php?action=clearLogs', { cache: 'no-store' })
+    if (!res.ok) throw new Error(`Clear logs failed (${res.status})`)
+    await safeJson(res)
+    fetchData()
+  }, [fetchData])
+
   const routes = useMemo(() => [
     { path: '#/status', label: 'Status' },
     { path: '#/logs', label: 'Logs' },
@@ -133,6 +140,7 @@ function App() {
                 onRegister={registerTag}
                 onUnregister={unregisterTag}
                 onToggle={updateStatus}
+                onClearLogs={clearLogs}
               />
               <RFIDStatusTable items={rfids} onToggle={updateStatus} />
             </div>
