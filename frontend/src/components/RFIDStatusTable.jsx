@@ -4,6 +4,7 @@ export default function RFIDStatusTable({ items, onToggle }) {
   return (
     <div className="card responsive">
       <h2>Registered RFIDs</h2>
+
       <div className="table">
         <div
           className="table-row table-header"
@@ -23,20 +24,16 @@ export default function RFIDStatusTable({ items, onToggle }) {
                 style={{ gridTemplateColumns: '1fr 0.6fr' }}
               >
                 <div className="mono">{row.rfid_tag}</div>
-                <div
-                  className="status-circle-wrapper"
-                  onClick={() => onToggle && onToggle(row.rfid_tag)}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: onToggle ? 'pointer' : 'default',
-                  }}
-                >
-                  <span
-                    className={`status-circle ${isOn ? 'on' : 'off'}`}
-                    title={isOn ? 'Active (1)' : 'Inactive (0)'}
-                  ></span>
+
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={() => onToggle && onToggle(row.rfid_tag)}
+                    />
+                    <span className="slider"></span>
+                  </label>
                 </div>
               </div>
             )
