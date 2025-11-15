@@ -175,6 +175,7 @@ body {
   width: var(--w);
   height: var(--h);
   border-radius: 999px;
+  background: #111827;
 
 }
 
@@ -323,27 +324,7 @@ body {
 }
 
 
+
 input:checked + .slider:before {
   transform: translateX(28px);
-}
-
-
-.logs-scroll {
-  max-height: 480px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-
-.logs-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.logs-scroll::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 6px;
-}
-
-.logs-scroll::-webkit-scrollbar-track {
-  background: transparent;
 }
