@@ -152,6 +152,7 @@ body {
 
 .badge-on, .badge-off {
   background: transparent;
+  border: none; 
 }
 
 .toggle {
