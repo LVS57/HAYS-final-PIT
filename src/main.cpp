@@ -3,68 +3,53 @@
 #include <MFRC522.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>
+#include <PubSubClient.h>
 #include <HTTPClient.h>
-
+#include <ArduinoJson.h>
 
 #define SS_PIN 5
 #define RST_PIN 0
-
 MFRC522 rfid(SS_PIN, RST_PIN);
+
 WiFiMulti wifiMulti;
 
+const char* mqttServer = "192.168.43.243";
+const int mqttPort = 1883;
+const char* mqttClientID = "ESP32_RFID";
+const char* topicData = "rfid/data";
+const char* topicRelay = "RFID_LOGIN";
 
-const char* serverScan = "http://10.10.10.33/insert.php";
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
 
-
-void readRFID();
-void sendScan(const String& rfidTag);
-void connectToWiFi();
-
+const char* serverScan = "http://192.168.43.243/insert.php";
 
 String lastTag = "";
 unsigned long lastReadTime = 0;
 const unsigned long readInterval = 3000;
 bool wifiConnected = false;
 
+void connectToWiFi();
+void reconnectMQTT();
+void readRFID();
+void sendRFIDData(const String& rfidTag);
+
 void setup() {
   Serial.begin(115200);
   while (!Serial);
 
-  
   SPI.begin(18, 19, 23);
   rfid.PCD_Init();
   Serial.println("RFID reader initialized");
 
-  // Set WiFi mode and add networks
   WiFi.mode(WIFI_STA);
-  wifiMulti.addAP("Cloud Control Network", "ccv7network"); 
-  
+  wifiMulti.addAP("OPPO A7", "12345678"); 
   connectToWiFi();
-  
+
+  mqttClient.setServer(mqttServer, mqttPort);
+
   Serial.println("System ready. Scan RFID cards...");
   Serial.println();
-}
-
-void connectToWiFi() {
-  int attempts = 0;
-  while (wifiMulti.run() != WL_CONNECTED && attempts < 30) {
-    Serial.print(".");
-    delay(500);
-    attempts++;
-  }
-  
-  if (wifiMulti.run() == WL_CONNECTED) {
-    wifiConnected = true;
-    Serial.println("\nWiFi connected");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-    Serial.println();
-  } else {
-    Serial.println("\nFailed to connect to WiFi");
-    Serial.println();
-  }
 }
 
 void loop() {
@@ -81,12 +66,49 @@ void loop() {
     Serial.println("WiFi reconnected");
   }
 
+  if (!mqttClient.connected()) reconnectMQTT();
+  mqttClient.loop();
+
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
     readRFID();
   }
+
   delay(30);
 }
 
+void connectToWiFi() {
+  int attempts = 0;
+  while (wifiMulti.run() != WL_CONNECTED && attempts < 30) {
+    Serial.print(".");
+    delay(500);
+    attempts++;
+  }
+
+  if (wifiMulti.run() == WL_CONNECTED) {
+    wifiConnected = true;
+    Serial.println("\nWiFi connected");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+    Serial.println();
+  } else {
+    Serial.println("\nFailed to connect to WiFi");
+    Serial.println();
+  }
+}
+
+void reconnectMQTT() {
+  while (!mqttClient.connected()) {
+    Serial.print("Connecting to MQTT...");
+    if (mqttClient.connect(mqttClientID)) {
+      Serial.println("connected");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 2s");
+      delay(2000);
+    }
+  }
+}
 
 void readRFID() {
   if (millis() - lastReadTime < readInterval) {
@@ -94,7 +116,7 @@ void readRFID() {
     rfid.PCD_StopCrypto1();
     return;
   }
-  
+
   String tag = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
     tag += String(rfid.uid.uidByte[i] < 0x10 ? "0" : "");
@@ -102,57 +124,59 @@ void readRFID() {
   }
   tag.toUpperCase();
   lastReadTime = millis();
-  if (tag == lastTag) {
-    rfid.PICC_HaltA();
-    rfid.PCD_StopCrypto1();
-    return;
-  }
-   lastTag = tag;
 
   Serial.print("RFID Detected: ");
   Serial.println(tag);
 
-  sendScan(tag);
+  sendRFIDData(tag);
 
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 }
 
-void sendRFIDData(String rfidData) {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Cannot send data - WiFi disconnected");
-    return;
-  }
+void sendRFIDData(const String& rfidData) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Cannot send data - WiFi disconnected");
+        return;
+    }
 
-  WiFiClient client;
-  HTTPClient http;
+    WiFiClient client;
+    HTTPClient http;
 
-  Serial.print("POST "); Serial.println(serverScan);
-  if (!http.begin(client, serverScan)) {
-    Serial.println("HTTP begin failed");
-    return;
-  }
+    if (!http.begin(client, serverScan)) {
+        Serial.println("HTTP begin failed");
+        return;
+    }
 
-  http.addHeader("Content-Type", "application/json");
-  http.setTimeout(10000);
+    http.addHeader("Content-Type", "application/json");
+    String jsonPayload = "{\"rfid_data\":\"" + rfidData + "\"}";
+    int httpResponseCode = http.POST(jsonPayload);
 
-  String jsonPayload = "{\"rfid_data\":\"" + rfidData + "\"}";
-  Serial.println("Attempting to send data to server...");
-  Serial.print("JSON Payload: ");
-  Serial.println(jsonPayload);
-  
-  int httpResponseCode = http.POST(jsonPayload);
-  if (httpResponseCode > 0) {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-    String response = http.getString();
-    Serial.print("Server response: ");
-    Serial.println(response);
-    Serial.println();
-  } else {
-    Serial.print("Error sending data. Code: ");
-    Serial.println(httpResponseCode);
-  }
-  
-  http.end();
+    if (httpResponseCode > 0) {
+        String response = http.getString();
+        Serial.print("Server response: ");
+        Serial.println(response);
+
+        DynamicJsonDocument doc(200);
+        DeserializationError error = deserializeJson(doc, response);
+        if (!error) {
+            int rfidStatus = doc["rfid_status"];
+
+            if (!mqttClient.connected()) reconnectMQTT();
+            mqttClient.publish(topicData, rfidData.c_str());
+
+            String relayStatus = (rfidStatus == 1) ? "1" : "0";
+            mqttClient.publish(topicRelay, relayStatus.c_str());
+
+            Serial.print("Published relay status: ");
+            Serial.println(relayStatus);
+        } else {
+            Serial.println("JSON parse error");
+        }
+    } else {
+        Serial.print("HTTP Error code: ");
+        Serial.println(httpResponseCode);
+    }
+
+    http.end();
 }
