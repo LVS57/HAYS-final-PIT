@@ -23,7 +23,7 @@ export default function RFIDLogs({ logs = [], rfids = [] }) {
         <div className="table-row table-header" style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}>
           <div>RFID</div>
           <div>Status</div>
-          <div>Stamp</div>
+          <div>Date & Time</div>
         </div>
       </div>
 

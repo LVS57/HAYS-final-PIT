@@ -14,35 +14,37 @@ export default function RFIDStatusTable({ items, onToggle }) {
           <div>Status</div>
         </div>
 
-        {items?.length ? (
-          items.map((row) => {
-            const isOn = Number(row.status) === 1
-            return (
-              <div
-                className="table-row"
-                key={row.rfid_tag}
-                style={{ gridTemplateColumns: '1fr 0.6fr' }}
-              >
-                <div className="mono">{row.rfid_tag}</div>
+        <div className="rfids-scroll">
+          {items?.length ? (
+            items.map((row) => {
+              const isOn = Number(row.status) === 1
+              return (
+                <div
+                  className="table-row"
+                  key={row.rfid_tag}
+                  style={{ gridTemplateColumns: '1fr 0.6fr' }}
+                >
+                  <div className="mono">{row.rfid_tag}</div>
 
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={isOn}
-                      onChange={() => onToggle && onToggle(row.rfid_tag)}
-                    />
-                    <span className="slider"></span>
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <label className="switch">
+                      <input
+                        type="checkbox"
+                        checked={isOn}
+                        onChange={() => onToggle && onToggle(row.rfid_tag)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
                 </div>
-              </div>
-            )
-          })
-        ) : (
-          <div className="table-row" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="muted">No registered RFIDs</div>
-          </div>
-        )}
+              )
+            })
+          ) : (
+            <div className="table-row" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="muted">No registered RFIDs</div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
