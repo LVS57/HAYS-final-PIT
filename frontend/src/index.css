@@ -228,16 +228,51 @@ body {
   font-weight: 700;
 }
 
-.logs .state.on {
-  color: #86efac;
+
+.logs-header-desktop {
+  display: block;
 }
 
-.logs .state.off {
-  color: #fecaca;
+.log-row-responsive {
+  display: grid;
+  grid-template-columns: 0.4fr 0.6fr 1fr;
+  gap: 8px;
 }
 
-.logs .state.notfound {
-  color: #fbbf24;
+.log-rfid,
+.log-status,
+.log-time {
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .logs-header-desktop {
+    display: none;
+  }
+
+  .log-row-responsive {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .log-rfid,
+  .log-status,
+  .log-time {
+    text-align: left;
+  }
+
+  .log-rfid {
+    font-weight: 600;
+  }
+
+  .log-status {
+    margin-top: 4px;
+  }
+
+  .log-time {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
 }
 
 .offline-banner {
@@ -262,7 +297,6 @@ body {
   flex-wrap: wrap;
   gap: 8px;
 }
-
 
 .switch {
   position: relative;
@@ -302,6 +336,7 @@ body {
 
 input:checked + .slider:before {
   transform: translateX(28px);
+<<<<<<< HEAD
 }
 
 
@@ -345,4 +380,6 @@ input:checked + .slider:before {
 
 .rfids-scroll::-webkit-scrollbar-track {
   background: transparent;
+=======
+>>>>>>> 9233a9096596aba2298bc6566fe0eccfbcb797e8
 }
