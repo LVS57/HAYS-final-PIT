@@ -13,7 +13,7 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 
 WiFiMulti wifiMulti;
 
-const char* mqttServer = "192.168.43.243";
+const char* mqttServer = "192.168.210.29";
 const int mqttPort = 1883;
 const char* mqttClientID = "ESP32_RFID";
 const char* topicData = "rfid/data";
@@ -22,7 +22,7 @@ const char* topicRelay = "RFID_LOGIN";
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-const char* serverScan = "http://192.168.43.243/insert.php";
+const char* serverScan = "http://192.168.210.29/insert.php";
 
 String lastTag = "";
 unsigned long lastReadTime = 0;
@@ -43,7 +43,7 @@ void setup() {
   Serial.println("RFID reader initialized");
 
   WiFi.mode(WIFI_STA);
-  wifiMulti.addAP("OPPO A7", "12345678"); 
+  wifiMulti.addAP("Ew", "12345678"); 
   connectToWiFi();
 
   mqttClient.setServer(mqttServer, mqttPort);
