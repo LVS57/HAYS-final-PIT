@@ -88,7 +88,7 @@ function App() {
           refreshing...
         </div>
       )}
-     <div style={{ padding: '16px', borderBottom: '1px solid #ccc' }}>
+     <div style={{ padding: '16px' }}>
         <h1 style={{ margin: 0 }}>Team Hays</h1>
       </div>
       <div className="grid two-col">
