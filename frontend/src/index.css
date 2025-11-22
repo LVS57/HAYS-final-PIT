@@ -263,30 +263,6 @@ body {
   gap: 8px;
 }
 
-.filter-group {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  color: var(--text);
-  border: 1px solid var(--border);
-  background: var(--border);
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s, color 0.2s;
-}
-
-
-
-.filter-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-}
 
 .switch {
   position: relative;
