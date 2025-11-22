@@ -60,7 +60,7 @@ function App() {
     }
   }, [])
 
-  
+
   useEffect(() => { fetchData({ background: false }) }, [fetchData])
 
 
@@ -88,7 +88,9 @@ function App() {
           refreshing...
         </div>
       )}
-
+     <div style={{ padding: '16px', borderBottom: '1px solid #ccc' }}>
+        <h1 style={{ margin: 0 }}>Team Hays</h1>
+      </div>
       <div className="grid two-col">
         <RFIDStatusTable items={rfids} />
         <RFIDLogs logs={logs} rfids={rfids} showFilter={false} />
