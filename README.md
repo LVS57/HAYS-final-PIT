@@ -357,3 +357,27 @@ Invoke-RestMethod -Uri 'http://<PC_IP>/insert.php' -Method POST -ContentType 'ap
 mosquitto_pub -h <PC_IP> -t RFID_LOGIN -m "1"
 mosquitto_pub -h <PC_IP> -t rfid/data -m "DEADBEEF"
 ```
+
+### 9) MQTT Start Batch (Windows)
+Create a config file (example `cloudcontrol.txt`) in `C:\mosquitto`:
+```
+listener 1883
+protocol mqtt
+
+listener 9001
+protocol websockets
+
+allow_anonymous true
+log_type all
+```
+Then create `start-mosquitto.bat` in the same folder:
+```
+@echo off
+cd /d C:\mosquitto
+mosquitto -v -c cloudcontrol.txt
+```
+Run it by double-clicking or from PowerShell:
+```powershell
+C:\mosquitto\start-mosquitto.bat
+```
+Adjust security for production (set `allow_anonymous false` and add `password_file`).
