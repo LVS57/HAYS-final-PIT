@@ -15,14 +15,15 @@ export default function RFIDLogs({ logs = [], rfids = [] }) {
   }
 
   return (
-    <div className="card responsive">
+    <div className="card responsive logs-full">
 
       <div className="flex-between" style={{ alignItems: 'center' }}>
         <h2>Recent RFID Logs</h2>
       </div>
 
       <div className="table centered" style={{ marginBottom: 8 }}>
-        <div className="table-row table-header" style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}>
+        <div className="table-row table-header" style={{ gridTemplateColumns: '0.2fr 0.4fr 0.6fr 1fr' }}>
+          <div></div>
           <div>RFID</div>
           <div>Status</div>
           <div>Date & Time</div>
@@ -33,7 +34,7 @@ export default function RFIDLogs({ logs = [], rfids = [] }) {
         <div className="table centered">
 
           {logs?.length ? (
-            logs.map((l) => {
+            logs.map((l, idx) => {
               const s = l.status === null ? null : Number(l.status)
               const isUnknown = s === null
               const isOn = s === 1
@@ -43,8 +44,9 @@ export default function RFIDLogs({ logs = [], rfids = [] }) {
                 <div
                   className="table-row"
                   key={l.id ?? `${l.rfid_tag}-${l.timestamp}`}
-                  style={{ gridTemplateColumns: '0.4fr 0.6fr 1fr' }}
+                  style={{ gridTemplateColumns: '0.2fr 0.4fr 0.6fr 1fr' }}
                 >
+                  <div className="mono" style={{ opacity: 0.8 }}>{idx + 1}</div>
                   <div className="mono">{l.rfid_tag}</div>
 
                   <div>

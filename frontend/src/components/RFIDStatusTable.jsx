@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function RFIDStatusTable({ items, onToggle }) {
   return (
-    <div className="card responsive">
+    <div className="card responsive status-table">
       <h2>Registered RFIDs</h2>
 
       <div className="table">

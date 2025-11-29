@@ -13,7 +13,7 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 
 WiFiMulti wifiMulti;
 
-const char* mqttServer = "192.168.212.29";
+const char* mqttServer = "192.168.137.52";
 const int mqttPort = 1883;
 const char* mqttClientID = "ESP32_RFID";
 const char* topicData = "rfid/data";
@@ -22,7 +22,7 @@ const char* topicRelay = "RFID_LOGIN";
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-const char* serverScan = "http://192.168.212.29/insert.php";
+const char* serverScan = "http://192.168.137.52/insert.php";
 
 String lastTag = "";
 unsigned long lastReadTime = 0;
@@ -46,6 +46,7 @@ void setup() {
   wifiMulti.addAP("Ew", "12345678"); 
   wifiMulti.addAP("V2042", "Singayan");
   wifiMulti.addAP("Cloud Control Network", "ccv7network");
+  wifiMulti.addAP("E-LIBRARY 4652", "1234567890");
   connectToWiFi();
 
   mqttClient.setServer(mqttServer, mqttPort);
@@ -75,7 +76,7 @@ void loop() {
     readRFID();
   }
 
-  delay(30);
+  delay(2);
 }
 
 void connectToWiFi() {

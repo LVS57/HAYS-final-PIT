@@ -275,6 +275,58 @@ body {
     font-size: 0.85rem;
     color: var(--muted);
   }
+
+  /* Make registered first, then logs */
+  .grid.two-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .status-table {
+    order: 1;
+    width: 100%;
+  }
+  .logs-full {
+    order: 2;
+    width: 100%;
+  }
+
+  /* Smaller text inside log cards for more info visibility */
+  .logs-full .table-row {
+    font-size: 0.78rem;
+    padding: 8px 10px;
+  }
+  .logs-full h2 {
+    font-size: 0.95rem;
+  }
+  .status-table h2 {
+    font-size: 0.95rem;
+  }
+  .logs-scroll, .rfids-scroll {
+    max-height: 360px; /* reduce height for mobile viewport */
+  }
+  .logs-full .mono {
+    font-size: 0.75rem;
+    word-break: break-all;
+  }
+  .logs-full .time {
+    font-size: 0.68rem;
+  }
+  .badge {
+    min-width: 42px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+  }
+  .switch {
+    width: 42px;
+    height: 18px;
+  }
+  .slider:before {
+    width: 18px;
+    height: 18px;
+  }
+  input:checked + .slider:before {
+    transform: translateX(24px);
+  }
 }
 
 .offline-banner {
