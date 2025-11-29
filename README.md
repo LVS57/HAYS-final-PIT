@@ -269,3 +269,91 @@ git commit -m "docs: add full README; clarify duplicate-prevention and API"
 ```
 
 ---
+
+## From-Scratch Setup (Backend, Frontend, MQTT, ESP32)
+
+Follow these steps on Windows to get everything running from zero.
+
+### 1) Install prerequisites
+- Install Git: https://git-scm.com/downloads
+- Install Node.js LTS: https://nodejs.org/
+- Install XAMPP (Apache + MySQL): https://www.apachefriends.org/
+- Optional: Install Mosquitto (MQTT broker) if you’ll use MQTT locally: https://mosquitto.org/download/
+- Install VS Code: https://code.visualstudio.com/
+- Install PlatformIO extension in VS Code (for ESP32 build/upload).
+
+### 2) Get the project
+```powershell
+cd C:\Users\Acer\Desktop\everything
+git clone https://github.com/<owner>/<repo>.git
+cd HAYS-final-PIT
+```
+
+### 3) Backend (PHP + MySQL)
+1. Start XAMPP → Start Apache and MySQL.
+2. Create DB and tables:
+   - Open phpMyAdmin → Import `docs/SQL.txt` (creates `4r6_hays` with tables and triggers).
+3. Deploy API script:
+   - Copy `docs/insert.php` to `C:\xampp\htdocs\insert.php` (or set Apache DocumentRoot accordingly).
+4. Test endpoints in browser:
+   - `http://localhost/insert.php?list=registered`
+   - `http://localhost/insert.php?list=logs`
+
+If using a mobile/hotspot, use your PC IPv4 instead of `localhost` (see Hotspot section below).
+
+### 4) Frontend (React + Vite)
+1. Open a terminal in `frontend/`:
+```powershell
+cd frontend
+npm install
+```
+2. Configure Vite proxy to your PHP host:
+   - Edit `frontend/vite.config.js` and set `server.host = true` and proxy target to `http://<PC_IP>` or `http://localhost`.
+3. Run dev server:
+```powershell
+npm run dev
+```
+4. Open the URL shown (e.g., `http://localhost:5173`).
+
+### 5) MQTT Broker (optional but supported)
+- If you need MQTT locally, install Mosquitto and start the broker:
+```powershell
+# Default local start (if installed in PATH)
+mosquitto -v
+```
+- Ensure topics used in ESP32 (`RFID_LOGIN`, `rfid/data`) are allowed by your broker config (`MQTT Relay LED/mosquitto.conf` if needed).
+
+### 6) ESP32 Firmware (RFID reader)
+1. Connect ESP32 + MFRC522 wiring as in `src/main.cpp` (SS/CS=5, RST=0; SPI pins: SCK=18, MISO=19, MOSI=23).
+2. Open VS Code → PlatformIO → Open Project `HAYS-final-PIT`.
+3. Configure server IPs in code:
+   - In `src/main.cpp` and `MQTT Relay LED/src/main.cpp`, set:
+     - `const char* mqttServer = "<PC_IP>";` (if using MQTT)
+     - `const char* serverScan = "http://<PC_IP>/insert.php";`
+     - Update Wi‑Fi SSID/passwords in `wifiMulti.addAP(...)`.
+4. Build and upload:
+   - PlatformIO: “Build” then “Upload” (select correct COM port).
+5. Monitor:
+   - PlatformIO: “Monitor” to view serial logs at 115200.
+
+### 7) Hotspot / Mobile Access
+- Find PC IPv4: `ipconfig` → Wi‑Fi adapter IPv4 (often `192.168.137.1`).
+- Frontend: open `http://<PC_IP>:5173` on mobile.
+- Backend: `http://<PC_IP>/insert.php?...` should respond.
+- ESP32 and MQTT should also target `<PC_IP>` (not `localhost`).
+- Allow through Windows Firewall (Node/Vite, Apache, Mosquitto).
+
+### 8) Common commands
+```powershell
+# Frontend
+cd frontend
+npm install
+npm run dev
+
+# Test API
+Invoke-RestMethod -Uri 'http://<PC_IP>/insert.php' -Method POST -ContentType 'application/json' -Body '{"rfid_data":"TESTTAG"}'
+
+# MQTT (publish tests; requires mosquitto-clients)
+mosquitto_pub -h <PC_IP> -t RFID_LOGIN -m "1"
+mosquitto_pub -h <PC_IP> -t rfid/data -m "DEADBEEF"
+```
