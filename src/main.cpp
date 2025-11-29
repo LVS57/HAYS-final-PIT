@@ -13,7 +13,7 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 
 WiFiMulti wifiMulti;
 
-const char* mqttServer = "192.168.210.29";
+const char* mqttServer = "192.168.212.29";
 const int mqttPort = 1883;
 const char* mqttClientID = "ESP32_RFID";
 const char* topicData = "rfid/data";
@@ -22,7 +22,7 @@ const char* topicRelay = "RFID_LOGIN";
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
-const char* serverScan = "http://192.168.210.29/insert.php";
+const char* serverScan = "http://192.168.212.29/insert.php";
 
 String lastTag = "";
 unsigned long lastReadTime = 0;
@@ -44,6 +44,8 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   wifiMulti.addAP("Ew", "12345678"); 
+  wifiMulti.addAP("V2042", "Singayan");
+  wifiMulti.addAP("Cloud Control Network", "ccv7network");
   connectToWiFi();
 
   mqttClient.setServer(mqttServer, mqttPort);
@@ -160,22 +162,38 @@ void sendRFIDData(const String& rfidData) {
         DynamicJsonDocument doc(200);
         DeserializationError error = deserializeJson(doc, response);
         if (!error) {
-            int rfidStatus = doc["rfid_status"];
+            if (doc.containsKey("rfid_status")) {
+                int rfidStatus = doc["rfid_status"];
+                
+                if (!mqttClient.connected()) reconnectMQTT();
+                mqttClient.publish(topicData, rfidData.c_str());
 
-            if (!mqttClient.connected()) reconnectMQTT();
-            mqttClient.publish(topicData, rfidData.c_str());
+                String statusMessage = (rfidStatus == 1) ? "1" : "0";
+                mqttClient.publish(topicRelay, statusMessage.c_str());
 
-            String relayStatus = (rfidStatus == 1) ? "1" : "0";
-            mqttClient.publish(topicRelay, relayStatus.c_str());
+                Serial.print("Published RFID status: ");
+                Serial.println(statusMessage);
+            } else {
+                if (!mqttClient.connected()) reconnectMQTT();
+                mqttClient.publish(topicData, rfidData.c_str());
+                mqttClient.publish(topicRelay, "RFID NOT FOUND");
 
-            Serial.print("Published relay status: ");
-            Serial.println(relayStatus);
+                Serial.println("Published: RFID NOT FOUND");
+            }
         } else {
             Serial.println("JSON parse error");
+            if (!mqttClient.connected()) reconnectMQTT();
+            mqttClient.publish(topicData, rfidData.c_str());
+            mqttClient.publish(topicRelay, "RFID NOT FOUND");
+            Serial.println("Published: RFID NOT FOUND (parse error)");
         }
     } else {
         Serial.print("HTTP Error code: ");
         Serial.println(httpResponseCode);
+        if (!mqttClient.connected()) reconnectMQTT();
+        mqttClient.publish(topicData, rfidData.c_str());
+        mqttClient.publish(topicRelay, "RFID NOT FOUND");
+        Serial.println("Published: RFID NOT FOUND (HTTP error)");
     }
 
     http.end();
