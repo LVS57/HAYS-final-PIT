@@ -65,7 +65,7 @@ function App() {
 
 
   useEffect(() => {
-    const id = setInterval(() => fetchData({ background: true }), 5000)
+    const id = setInterval(() => fetchData({ background: true }), 1000)
     return () => clearInterval(id)
   }, [fetchData])
 
@@ -85,7 +85,6 @@ function App() {
             opacity: 0.6,
           }}
         >
-          refreshing...
         </div>
       )}
      <div style={{ padding: '16px' }}>
